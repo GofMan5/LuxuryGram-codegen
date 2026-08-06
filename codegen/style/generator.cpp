@@ -663,7 +663,7 @@ bool Generator::writeIncludesInSource() {
 	for (const auto &base : includes) {
 		source_->include("styles/" + base + ".h");
 	}
-	const auto ayuIncluded = !module_.enumVariables([=](const Variable &value) -> bool
+	const auto luxuryIncluded = !module_.enumVariables([=](const Variable &value) -> bool
 	{
 		for (const auto &name : value.name) {
 			if (kWideMultiplicable.contains(name)) {
@@ -672,7 +672,7 @@ bool Generator::writeIncludesInSource() {
 		}
 		return true;
 	});
-	if (ayuIncluded) {
+	if (luxuryIncluded) {
 		source_->include("ayu/ayu_ui_settings.h");
 	}
 	source_->newline();
