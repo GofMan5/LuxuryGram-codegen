@@ -314,7 +314,7 @@ QString Generator::valueAssignmentCode(
 	case Tag::Double: return QString("%1").arg(value.Double());
 	case Tag::Pixels: {
 		if (kWideMultiplicable.contains(name)) {
-			return QString("AyuUiSettings::getWideMultiplied(%1, %2)").arg(pxValueName(value.Int())).arg(kWideMultiplicable.at(name));
+			return QString("LuxuryUiSettings::getWideMultiplied(%1, %2)").arg(pxValueName(value.Int())).arg(kWideMultiplicable.at(name));
 		}
 		return pxValueName(value.Int());
 	} break;
@@ -337,7 +337,7 @@ QString Generator::valueAssignmentCode(
 	case Tag::Size: {
 		auto v(value.Size());
 		if (kWideMultiplicable.contains(name)) {
-			return QString("{ AyuUiSettings::getWideMultiplied(%1, %3), AyuUiSettings::getWideMultiplied(%2, %3) }").arg(pxValueName(v.width), pxValueName(v.height)).arg(kWideMultiplicable.at(name));
+			return QString("{ LuxuryUiSettings::getWideMultiplied(%1, %3), LuxuryUiSettings::getWideMultiplied(%2, %3) }").arg(pxValueName(v.width), pxValueName(v.height)).arg(kWideMultiplicable.at(name));
 		}
 		return QString("{ %1, %2 }").arg(pxValueName(v.width), pxValueName(v.height));
 	} break;
