@@ -673,7 +673,7 @@ bool Generator::writeIncludesInSource() {
 		return true;
 	});
 	if (luxuryIncluded) {
-		source_->include("ayu/ayu_ui_settings.h");
+		source_->include("luxury/luxury_ui_settings.h");
 	}
 	source_->newline();
 	return result;
