@@ -29,7 +29,7 @@ constexpr int kErrorCantReadKeys    = 831;
 constexpr int kErrorCantReadSource  = 832;
 constexpr int kErrorCantWriteSubset = 833;
 
-constexpr auto kCacheVersion = quint32(1);
+constexpr auto kCacheVersion = quint32(2);
 
 const auto kKeysFile = QString("lang_auto_keys.h");
 const auto kSubsetsFolder = QString("lang_subsets");
@@ -193,14 +193,21 @@ void Scan(const QByteArray &content, Scanned &result) {
 	const auto data = content.constData();
 	const auto size = content.size();
 	for (auto i = qsizetype(0); i + 4 < size; ++i) {
-		if (data[i] != 'l'
-			|| data[i + 1] != 'n'
-			|| data[i + 2] != 'g'
-			|| data[i + 3] != '_'
+		const auto standard = data[i] == 'l'
+			&& data[i + 1] == 'n'
+			&& data[i + 2] == 'g'
+			&& data[i + 3] == '_';
+		const auto luxury = data[i] == 'l'
+			&& data[i + 1] == 'u'
+			&& data[i + 2] == 'x'
+			&& data[i + 3] == 'u'
+			&& i + 7 < size
+			&& content.mid(i, 7) == "luxury_";
+		if ((!standard && !luxury)
 			|| (i > 0 && IsIdentifierChar(data[i - 1]))) {
 			continue;
 		}
-		auto till = i + 4;
+		auto till = i + (standard ? 4 : 7);
 		while (till != size && IsIdentifierChar(data[till])) {
 			++till;
 		}
