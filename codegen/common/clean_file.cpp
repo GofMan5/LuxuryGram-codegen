@@ -92,7 +92,12 @@ bool CleanFile::read() {
 		char nextChar = (ch + 1 == end) ? 0 : *(ch + 1);
 
 		if (insideComment == InsideComment::None && currentChar == '"') {
-			bool escaped = ((ch > begin) && *(ch - 1) == '\\') && ((ch - 1 < begin) || *(ch - 2) != '\\');
+			auto escaped = false;
+			for (auto preceding = ch;
+				preceding > begin && *(preceding - 1) == '\\';
+				--preceding) {
+				escaped = !escaped;
+			}
 			if (!escaped) {
 				insideString = !insideString;
 			}
