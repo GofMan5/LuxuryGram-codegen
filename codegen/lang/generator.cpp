@@ -422,10 +422,7 @@ ushort GetTagIndex(QLatin1String tag) {\n\
 
 	source_->stream() << "\
 }\n\
-\n\
-ushort GetKeyIndex(QLatin1String key) {\n\
-	auto size = key.size();\n\
-	auto data = key.data();\n";
+\n";
 
 	auto indices = std::map<QString, QString>();
 	for (auto i = 0, total = int(langpack_.entries.size()); i != total; ++i) {
@@ -459,11 +456,50 @@ ushort GetKeyIndex(QLatin1String key) {\n\
 		}
 	}
 
-	writeSetSearch(keysSet, [&](const QString &key) {
+	// One search over every key made a function MSVC ARM64 refuses (C1053),
+	// so each part covers a contiguous range of the descending key order and
+	// GetKeyIndex picks the part by the range's smallest key.
+	constexpr auto kKeysPerPart = 2000;
+	auto parts = std::vector<std::set<QString, std::greater<>>>();
+	for (const auto &key : keysSet) {
+		if (parts.empty() || parts.back().size() == kKeysPerPart) {
+			parts.emplace_back();
+		}
+		parts.back().insert(key);
+	}
+	const auto computeKey = [&](const QString &key) {
 		auto it = taggedKeys.find(key);
 		const auto name = (it != taggedKeys.end()) ? it->second : key;
 		return indexOfKey(name);
-	}, "kKeysCount");
+	};
+	source_->stream() << "namespace {\n";
+	for (auto i = 0, partsCount = int(parts.size()); i != partsCount; ++i) {
+		source_->stream() << "\
+\n\
+ushort GetKeyIndexPart" << i << "(QLatin1String key) {\n\
+	auto size = key.size();\n\
+	auto data = key.data();\n";
+		writeSetSearch(parts[i], computeKey, "kKeysCount");
+		source_->stream() << "}\n";
+	}
+	source_->stream() << "\
+\n\
+} // namespace\n\
+\n\
+ushort GetKeyIndex(QLatin1String key) {\n";
+	for (auto i = 0, partsCount = int(parts.size()); i != partsCount; ++i) {
+		if (i + 1 == partsCount) {
+			source_->stream() << "\treturn GetKeyIndexPart" << i << "(key);\n";
+		} else {
+			source_->stream() << "\
+	if (key >= QLatin1String(\"" << *parts[i].rbegin() << "\")) {\n\
+		return GetKeyIndexPart" << i << "(key);\n\
+	}\n";
+		}
+	}
+	if (parts.empty()) {
+		source_->stream() << "\treturn kKeysCount;\n";
+	}
 	header_->popNamespace().newline();
 
 	source_->stream() << "\
